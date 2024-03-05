@@ -16,17 +16,17 @@ const char *ssid = "ImpactRocket"; // The name of the Wi-Fi network that will be
 const char *password = "pyrotech";   // The password required to connect to it, leave blank for an open network
 IPAddress ip(10, 0, 0, 1);  // Set the desired IP address for the access point
 
-#define SECTION_1_COLOR_R_ON 255
+#define SECTION_1_COLOR_R_ON 0
 #define SECTION_1_COLOR_G_ON 255
 #define SECTION_1_COLOR_B_ON 255
 
 #define SECTION_2_COLOR_R_ON 255
-#define SECTION_2_COLOR_G_ON 255
+#define SECTION_2_COLOR_G_ON 0
 #define SECTION_2_COLOR_B_ON 255
 
 #define SECTION_3_COLOR_R_ON 255
 #define SECTION_3_COLOR_G_ON 255
-#define SECTION_3_COLOR_B_ON 255
+#define SECTION_3_COLOR_B_ON 0
 
 #define SECTION_4_COLOR_R_ON 255
 #define SECTION_4_COLOR_G_ON 255
@@ -43,7 +43,7 @@ IPAddress ip(10, 0, 0, 1);  // Set the desired IP address for the access point
 #define SECTION_3_END 30
 
 #define SECTION_4_FIRST 31
-#define SECTION_4_END 40
+#define SECTION_4_END 60
 
 
 // Which pin on the Arduino/esp8266 is connected to the NeoPixels?
@@ -64,10 +64,13 @@ void handleRoot();
 void handleLED();
 void handleNotFound();
 void switch_lights();
+void switch_lights_off();
 void switch_lights_section1();
 void switch_lights_section2();
 void switch_lights_section3();
 void switch_lights_section4();
+void switch_lights_on();
+void setSpecificPixelRange(int first, int last, int red, int green, int blue);
 
 void setup() {
   Serial.begin(115200);
@@ -83,6 +86,7 @@ void setup() {
   clock_prescale_set(clock_div_1);
 #endif
   // END of Trinket-specific code.
+  WiFi.setSleep(false);
 
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
 
@@ -106,8 +110,12 @@ void setup() {
   server.on("/switch_lights/section4", HTTP_GET, switch_lights_section4);
   server.on("/switch_lights/on", HTTP_GET, switch_lights_on);
   server.onNotFound(handleNotFound);        // When a client requests an unknown URI (i.e. something other than "/"), call function "handleNotFound"
-
+  
+  pixels.clear();
+  setSpecificPixelRange(SECTION_1_FIRST, SECTION_4_END, 0, 0, 0);
+  
   server.begin();  // Start the server
+  server.keepAlive(false);
 }
 
 void loop() { 
