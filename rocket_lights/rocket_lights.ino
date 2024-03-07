@@ -16,48 +16,48 @@ const char *ssid = "ImpactRocket"; // The name of the Wi-Fi network that will be
 const char *password = "pyrotech";   // The password required to connect to it, leave blank for an open network
 IPAddress ip(10, 0, 0, 1);  // Set the desired IP address for the access point
 
-#define SECTION_1_COLOR_R_ON 0
+#define SECTION_1_COLOR_R_ON 255
 #define SECTION_1_COLOR_G_ON 255
-#define SECTION_1_COLOR_B_ON 255
+#define SECTION_1_COLOR_B_ON 0
 
 #define SECTION_2_COLOR_R_ON 255
-#define SECTION_2_COLOR_G_ON 0
-#define SECTION_2_COLOR_B_ON 255
+#define SECTION_2_COLOR_G_ON 116
+#define SECTION_2_COLOR_B_ON 10
 
 #define SECTION_3_COLOR_R_ON 255
-#define SECTION_3_COLOR_G_ON 255
-#define SECTION_3_COLOR_B_ON 0
+#define SECTION_3_COLOR_G_ON 80
+#define SECTION_3_COLOR_B_ON 80
 
 #define SECTION_4_COLOR_R_ON 255
-#define SECTION_4_COLOR_G_ON 255
-#define SECTION_4_COLOR_B_ON 255
+#define SECTION_4_COLOR_G_ON 51
+#define SECTION_4_COLOR_B_ON 51
 
 #define SECTION_5_COLOR_R_ON 255
-#define SECTION_5_COLOR_G_ON 255
-#define SECTION_5_COLOR_B_ON 255
+#define SECTION_5_COLOR_G_ON 25
+#define SECTION_5_COLOR_B_ON 25
 
 #define SECTION_6_COLOR_R_ON 255
-#define SECTION_6_COLOR_G_ON 255
-#define SECTION_6_COLOR_B_ON 255
+#define SECTION_6_COLOR_G_ON 0
+#define SECTION_6_COLOR_B_ON 0
 
 // Here's where you set up the sections for which LEDs and what colors for each section
 #define SECTION_1_FIRST 1
-#define SECTION_1_END 19
+#define SECTION_1_END 23
 
-#define SECTION_2_FIRST 20
-#define SECTION_2_END 39
+#define SECTION_2_FIRST 24
+#define SECTION_2_END 42
 
-#define SECTION_3_FIRST 40
-#define SECTION_3_END 59
+#define SECTION_3_FIRST 43
+#define SECTION_3_END 60
 
-#define SECTION_4_FIRST 60
-#define SECTION_4_END 79
+#define SECTION_4_FIRST 61
+#define SECTION_4_END 78
 
-#define SECTION_5_FIRST 80
-#define SECTION_5_END 99
+#define SECTION_5_FIRST 79
+#define SECTION_5_END 97
 
-#define SECTION_6_FIRST 100
-#define SECTION_6_END 119
+#define SECTION_6_FIRST 98
+#define SECTION_6_END 120
 
 
 // Which pin on the Arduino/esp8266 is connected to the NeoPixels?
@@ -92,6 +92,8 @@ void setup() {
   delay(10);
   Serial.println('\n');
 
+  ESP.eraseConfig();
+
   pinMode(BUILT_IN_LED2, OUTPUT);
   digitalWrite(BUILT_IN_LED2, HIGH);
 
@@ -114,6 +116,7 @@ void setup() {
 
   Serial.print("IP address:\t");
   Serial.println(WiFi.softAPIP());         // Send the IP address of the ESP8266 to the computer
+  WiFi.setAutoConnect(false);
 
   server.on("/", HTTP_GET, handleRoot);  // Handle the root path ("/") with the handleRoot function
   server.on("/switch_lights", HTTP_GET, switch_lights);
@@ -135,8 +138,12 @@ void setup() {
 
 }
 
-void loop() { 
+int counter = 0;
+void loop() {
+  Serial.print("request#: "); Serial.println(counter);counter++; 
   server.handleClient();  // Handle incoming client requests
+  Serial.println("handled");
+  delay(1);
 }
 
 const char* g_selectionPageText = "<html> \
@@ -199,6 +206,12 @@ const char* getSelectionPageText() {
 void setSpecificPixelRange(int first, int last, int red, int green, int blue) {
   for (int jj = first; jj < last+1; jj++) {
     pixels.setPixelColor(jj, pixels.Color(red, green, blue));
+    yield();
+    /*
+    if (!(jj % 10)) { // yield after every 10th pixel set (trying to make sure watch dog gets stroked)
+      yield();
+    }
+    */
   }
   pixels.show();
 }
@@ -216,28 +229,30 @@ void handleNotFound(){
 void switch_lights_off() {
   // act here (activate section 1)
   pixels.clear();
+  yield();
   setSpecificPixelRange(SECTION_1_FIRST, SECTION_4_END, 0, 0, 0);
+  yield();
   const char* text = getSelectionPageText();                 // When URI / is requested, send a web page with a buttons to toggle the LED strip sections
   server.send(200, "text/html", text);
   return;
-  server.sendHeader("Location","/");        // Add a header to respond with a new location for the browser to go to the home page again
-  server.send(303);
 }
 
 void switch_lights_section1() {
   // act here (activate section 1)
   pixels.clear();
+  yield();
   setSpecificPixelRange(SECTION_1_FIRST, SECTION_1_END, SECTION_1_COLOR_R_ON, SECTION_1_COLOR_G_ON, SECTION_1_COLOR_B_ON);
+  yield();
   const char* text = getSelectionPageText();                 // When URI / is requested, send a web page with a buttons to toggle the LED strip sections
   server.send(200, "text/html", text);
   return;
-  server.sendHeader("Location","/");        // Add a header to respond with a new location for the browser to go to the home page again
-  server.send(303);
 }
 void switch_lights_section2(){
   // act here (activate section 2)
   pixels.clear();
+  yield();
   setSpecificPixelRange(SECTION_2_FIRST, SECTION_2_END, SECTION_2_COLOR_R_ON, SECTION_2_COLOR_G_ON, SECTION_2_COLOR_B_ON);
+  yield();
   const char* text = getSelectionPageText();                 // When URI / is requested, send a web page with a buttons to toggle the LED strip sections
   server.send(200, "text/html", text);
   return;
@@ -248,54 +263,57 @@ void switch_lights_section2(){
 void switch_lights_section3() {
   // act here (activate section 3)
   pixels.clear();
+  yield();
   setSpecificPixelRange(SECTION_3_FIRST, SECTION_3_END, SECTION_3_COLOR_R_ON, SECTION_3_COLOR_G_ON, SECTION_3_COLOR_B_ON);
+  yield();
   const char* text = getSelectionPageText();                 // When URI / is requested, send a web page with a buttons to toggle the LED strip sections
   server.send(200, "text/html", text);
   return;
-  server.sendHeader("Location","/");        // Add a header to respond with a new location for the browser to go to the home page again
-  server.send(303);
 }
 
 void switch_lights_section4(){
   // act here (activate section 4)
   pixels.clear();
+  yield();
   setSpecificPixelRange(SECTION_4_FIRST, SECTION_4_END, SECTION_4_COLOR_R_ON, SECTION_4_COLOR_G_ON, SECTION_4_COLOR_B_ON);
+  yield();
   const char* text = getSelectionPageText();                 // When URI / is requested, send a web page with a buttons to toggle the LED strip sections
   server.send(200, "text/html", text);
   return;
-  server.sendHeader("Location","/");        // Add a header to respond with a new location for the browser to go to the home page again
-  server.send(303);
 }
 
 void switch_lights_section5(){
   // act here (activate section 5)
   pixels.clear();
+  yield();
   setSpecificPixelRange(SECTION_5_FIRST, SECTION_5_END, SECTION_5_COLOR_R_ON, SECTION_5_COLOR_G_ON, SECTION_5_COLOR_B_ON);
+  yield();
   const char* text = getSelectionPageText();                 // When URI / is requested, send a web page with a buttons to toggle the LED strip sections
   server.send(200, "text/html", text);
   return;
-  server.sendHeader("Location","/");        // Add a header to respond with a new location for the browser to go to the home page again
-  server.send(303);
 }
 
 void switch_lights_section6(){
   // act here (activate section 4)
   pixels.clear();
+  yield();
   setSpecificPixelRange(SECTION_6_FIRST, SECTION_6_END, SECTION_6_COLOR_R_ON, SECTION_6_COLOR_G_ON, SECTION_6_COLOR_B_ON);
+  yield();
+  const char* text = getSelectionPageText();                 // When URI / is requested, send a web page with a buttons to toggle the LED strip sections
+  server.send(200, "text/html", text);
   return;
-  server.sendHeader("Location","/");        // Add a header to respond with a new location for the browser to go to the home page again
-  server.send(303);
 }
 
 void switch_lights_on(){
   // act here (activate section 4)
   pixels.clear();
+  yield();
   setSpecificPixelRange(SECTION_1_FIRST, SECTION_6_END, SECTION_6_COLOR_R_ON, SECTION_6_COLOR_G_ON, SECTION_6_COLOR_B_ON);
+  yield();
   const char* text = getSelectionPageText();                 // When URI / is requested, send a web page with a buttons to toggle the LED strip sections
   server.send(200, "text/html", text);
   return;
-  server.sendHeader("Location","/");        // Add a header to respond with a new location for the browser to go to the home page again
-  server.send(303);
+
 }
 
 void switch_lights(){
@@ -303,6 +321,4 @@ void switch_lights(){
   const char* text = getSelectionPageText();                 // When URI / is requested, send a web page with a buttons to toggle the LED strip sections
   server.send(200, "text/html", text);
   return;
-  server.sendHeader("Location","/");        // Add a header to respond with a new location for the browser to go to the home page again
-  server.send(303);
 }
