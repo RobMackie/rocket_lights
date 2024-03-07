@@ -121,12 +121,12 @@ void setup() {
   server.on("/", HTTP_GET, handleRoot);  // Handle the root path ("/") with the handleRoot function
   server.on("/switch_lights", HTTP_GET, switch_lights);
   server.on("/switch_lights/off", HTTP_GET, switch_lights_off);
-  server.on("/switch_lights/section1", HTTP_GET, switch_lights_section1);
-  server.on("/switch_lights/section2", HTTP_GET, switch_lights_section2);
-  server.on("/switch_lights/section3", HTTP_GET, switch_lights_section3);
-  server.on("/switch_lights/section4", HTTP_GET, switch_lights_section4);
-  server.on("/switch_lights/section5", HTTP_GET, switch_lights_section5);
-  server.on("/switch_lights/section6", HTTP_GET, switch_lights_section6);
+  server.on("/switch_lights/section1", HTTP_GET, switch_lights_section6);
+  server.on("/switch_lights/section2", HTTP_GET, switch_lights_section5);
+  server.on("/switch_lights/section3", HTTP_GET, switch_lights_section4);
+  server.on("/switch_lights/section4", HTTP_GET, switch_lights_section3);
+  server.on("/switch_lights/section5", HTTP_GET, switch_lights_section2);
+  server.on("/switch_lights/section6", HTTP_GET, switch_lights_section1);
   server.on("/switch_lights/on", HTTP_GET, switch_lights_on);
   server.onNotFound(handleNotFound);        // When a client requests an unknown URI (i.e. something other than "/"), call function "handleNotFound"
   
